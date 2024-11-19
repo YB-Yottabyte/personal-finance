@@ -17,7 +17,7 @@ public class MainApp {
     private static JTable expenseTable;
     private static DefaultTableModel tableModel;
     private static JTextField budgetField;
-    private static JLabel remainingBudgetLabel;  // Declare the label to show remaining budget
+    private static JLabel remainingBudgetLabel;  
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(MainApp::createUI);
@@ -134,7 +134,7 @@ public class MainApp {
         for (Expense expense : expenseList) {
             // Add rows to the table
             tableModel.addRow(new Object[]{
-                    "$" + String.format("%.2f", expense.getAmount()),  // Add dollar sign to amount
+                    "$" + String.format("%.2f", expense.getAmount()),  
                     expense.getCategory(),
                     expense.getDate(),
                     expense.getDescription()
@@ -204,7 +204,7 @@ public class MainApp {
     private static void updateRemainingBudgetLabel() {
         double totalSpent = getTotalSpent();
         double remainingBudget = budget - totalSpent;
-        remainingBudgetLabel.setText("Remaining Budget: $" + String.format("%.2f", remainingBudget));  // Update label with formatted amount
+        remainingBudgetLabel.setText("Remaining Budget: $" + String.format("%.2f", remainingBudget));  
     }
 
     // Method to clear all expenses
