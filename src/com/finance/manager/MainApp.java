@@ -357,6 +357,7 @@ public class MainApp {
     }
 
 
+
     // Expense class to represent individual expense items
     static class Expense {
         private final double amount;
