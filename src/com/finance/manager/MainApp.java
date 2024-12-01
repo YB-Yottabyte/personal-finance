@@ -1,147 +1,3 @@
-// Code for the Console version for my application
-
-/* package com.finance.manager;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import java.util.Scanner;
-
-public class MainApp {
-    public static void main(String[] args) {
-        ExpenseManager expenseManager = new ExpenseManager();
-        Scanner scanner = new Scanner(System.in);
-
-        while (true) {
-            System.out.println("Welcome to Personal Finance Manager");
-            System.out.println("1. Add Expense");
-            System.out.println("2. View Expenses");
-            System.out.println("3. Clear Expenses");
-            System.out.println("4. Set Budget");
-            System.out.println("5. View Budget");
-            System.out.println("6. Exit");
-            System.out.print("Choose an option: ");
-
-            int choice;
-            try {
-                choice = scanner.nextInt();
-            } catch (Exception e) {
-                System.out.println("Invalid input. Please enter a number.");
-                scanner.next();
-                continue;
-            }
-
-            switch (choice) {
-                case 1:
-                    AddExpense(scanner, expenseManager);
-                    break;
-
-                case 2:
-                    viewExpenses(expenseManager);
-                    break;
-
-                case 3:
-                    ClearExpense(scanner, expenseManager);
-                    break;
-
-                case 4:
-                    setBudget(scanner, expenseManager);
-                    break;
-
-                case 5:
-                    viewBudgetStatus(expenseManager);
-                    break;
-
-                case 6:
-                    System.out.println("Exiting...");
-                    scanner.close();
-                    return;
-
-                default:
-                    System.out.println("Invalid choice. Please try again.");
-            }
-        }
-    }
-
-    private static void AddExpense(Scanner scanner, ExpenseManager expenseManager) {
-        System.out.print("Enter amount: ");
-        double amount = scanner.nextDouble();
-        System.out.print("Enter category: ");
-        String category = scanner.next();
-        System.out.print("Enter date (YYYY-MM-DD): ");
-        String dateInput = scanner.next();
-        LocalDate date;
-
-        try {
-            date = LocalDate.parse(dateInput); // Parse to LocalDate
-        } catch (DateTimeParseException e) {
-            System.out.println("Invalid date format. Please use YYYY-MM-DD.");
-            return;
-        }
-
-        System.out.print("Enter description: ");
-        String description = scanner.next();
-
-        // Create Expense object and add it to the manager
-        Expense expense = new Expense(amount, category, date, description);
-        expenseManager.addExpense(expense);
-        System.out.println("Expense added!");
-    }
-
-
-    private static void viewExpenses(ExpenseManager expenseManager) {
-        System.out.printf("%-10s %-15s %-12s %-20s%n", "Amount", "Category", "Date", "Description");
-        System.out.println("---------------------------------------------------------------");
-
-        for (Expense exp : expenseManager.getExpenses()) {
-            System.out.printf("%-10.2f %-15s %-12s %-20s%n",
-                    exp.getAmount(), exp.getCategory(), exp.getDate(), exp.getDescription());
-        }
-    }
-
-    private static void setBudget(Scanner scanner, ExpenseManager expenseManager) {
-        System.out.print("Enter budget amount: ");
-        double amount = scanner.nextDouble();
-        System.out.print("Enter budget period (weekly/monthly): ");
-        String period = scanner.next().toLowerCase();
-
-        if(!period.equals("weekly") && !period.equals("monthly")) {
-            System.out.println("Invalid budget period. Please use weekly/monthly.");
-            return;
-        }
-
-        expenseManager.setBudget(amount, period);
-        System.out.println("Budget set to " + amount +" for " + period + " period.");
-    }
-
-    private static void viewBudgetStatus(ExpenseManager expenseManager) {
-        double totalSpent = expenseManager.getTotalSpent();
-        double remainingBudget = expenseManager.getRemainingBudget();
-        String budgetPeriod = expenseManager.getBudgetPeriod();
-
-        System.out.println("Budget Period: " + budgetPeriod);
-        System.out.println("Budget Amount: " + expenseManager.getBudget());
-        System.out.printf("Total Spent: %.2f%n", totalSpent);
-        System.out.printf("Remaining Budget: %.2f%n", remainingBudget);
-
-        if (remainingBudget < 0) {
-            System.out.println("Warning: You have exceeded your budget!");
-        }
-    }
-
-    private static void ClearExpense(Scanner scanner, ExpenseManager expenseManager) {
-        System.out.print("Are you sure you want to clear all expenses? (yes/no): ");
-        String confirmation = scanner.next();
-        if (confirmation.equalsIgnoreCase("yes")) {
-            expenseManager.clearExpenses();
-        } else {
-            System.out.println("Clearing expenses aborted.");
-        }
-    }
-
-}
-*/
-
-
 // Code for the graphical user interface (GUI) version for my application
 
 package com.finance.manager;
@@ -154,6 +10,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+
+
 
 public class MainApp {
 
@@ -163,7 +26,8 @@ public class MainApp {
     private static JTable expenseTable;
     private static DefaultTableModel tableModel;
     private static JTextField budgetField;
-    private static JLabel remainingBudgetLabel;  
+    private static JLabel remainingBudgetLabel;
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(MainApp::createUI);
@@ -173,6 +37,9 @@ public class MainApp {
     private static void createUI() {
         // Create the main window
         JFrame frame = new JFrame("Personal Finance Manager");
+        JButton loadCSVButton = new JButton("Load Expenses from CSV");
+        JButton exportCSVButton = new JButton("Export Expenses to CSV");
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 400);
         frame.setLayout(new BorderLayout());
@@ -198,6 +65,12 @@ public class MainApp {
         buttonPanel.add(viewBudgetButton);
         buttonPanel.add(clearExpensesButton);
         buttonPanel.add(setBudgetButton);
+        buttonPanel.add(loadCSVButton);
+        buttonPanel.add(exportCSVButton);
+
+
+// Action listener for the "Load CSV" button
+
 
         frame.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -212,6 +85,28 @@ public class MainApp {
         viewBudgetButton.addActionListener(e -> viewBudgetStatus());
         clearExpensesButton.addActionListener(e -> clearExpenses());
         setBudgetButton.addActionListener(e -> setBudget());
+        loadCSVButton.addActionListener(e -> loadCSV());
+        exportCSVButton.addActionListener(e -> exportCSV());
+
+        frame.addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                // Prompt the user to export expenses before closing the application
+                int confirmation = JOptionPane.showConfirmDialog(frame,
+                        "Do you want to export your expenses before closing?",
+                        "Export Expenses",
+                        JOptionPane.YES_NO_OPTION);
+
+                if (confirmation == JOptionPane.YES_OPTION) {
+                    exportCSV();
+                }
+
+                // Close the application
+                System.exit(0);
+            }
+        });
+
+
+
 
 
 
@@ -221,19 +116,28 @@ public class MainApp {
 
     // Method to add an expense
     private static void addExpense() {
+
+
         // Create a dialog to input the expense details
         JTextField amountField = new JTextField(10);
         JTextField categoryField = new JTextField(10);
         JTextField descriptionField = new JTextField(10);
 
+        // Add industry selection
+        String[] industries = {"Retail", "Technology", "Healthcare", "Manufacturing", "Services"};
+        JComboBox<String> industryComboBox = new JComboBox<>(industries);
+
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(4, 2));
+        panel.setLayout(new GridLayout(5, 2));
         panel.add(new JLabel("Amount:"));
         panel.add(amountField);
         panel.add(new JLabel("Category:"));
         panel.add(categoryField);
+        panel.add(new JLabel("Industry:"));
+        panel.add(industryComboBox);  // Add industry dropdown
         panel.add(new JLabel("Description:"));
         panel.add(descriptionField);
+
 
         // Date picker (JSpinner)
         JPanel datePanel = new JPanel();
@@ -280,7 +184,7 @@ public class MainApp {
         for (Expense expense : expenseList) {
             // Add rows to the table
             tableModel.addRow(new Object[]{
-                    "$" + String.format("%.2f", expense.getAmount()),  
+                    "$" + String.format("%.2f", expense.getAmount()),
                     expense.getCategory(),
                     expense.getDate(),
                     expense.getDescription()
@@ -350,7 +254,7 @@ public class MainApp {
     private static void updateRemainingBudgetLabel() {
         double totalSpent = getTotalSpent();
         double remainingBudget = budget - totalSpent;
-        remainingBudgetLabel.setText("Remaining Budget: $" + String.format("%.2f", remainingBudget));  
+        remainingBudgetLabel.setText("Remaining Budget: $" + String.format("%.2f", remainingBudget));
     }
 
     // Method to clear all expenses
@@ -363,6 +267,108 @@ public class MainApp {
             JOptionPane.showMessageDialog(null, "All expenses have been cleared.");
         }
     }
+
+    private static void exportExpensesToCSV(String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            // Write header row
+            writer.write("Amount,Category,Date,Description\n");
+
+            // Write each expense as a new line in CSV format
+            for (Expense expense : expenseList) {
+                writer.write(String.format("%.2f,%s,%s,%s\n",
+                        expense.getAmount(),
+                        expense.getCategory(),
+                        expense.getDate(),
+                        expense.getDescription()));
+            }
+
+            JOptionPane.showMessageDialog(null, "Expenses exported successfully!");
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error exporting the CSV file: " + e.getMessage());
+        }
+    }
+
+    private static void exportCSV() {
+        // Open file chooser to select save location for CSV file
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save Expenses to CSV");
+        fileChooser.setSelectedFile(new java.io.File("expenses.csv")); // Default filename
+
+        int result = fileChooser.showSaveDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            String filePath = fileChooser.getSelectedFile().getAbsolutePath();
+
+            // Check if the file has a .csv extension, if not, append it
+            if (!filePath.endsWith(".csv")) {
+                filePath += ".csv";
+            }
+
+            // Export the expenses to the selected CSV file
+            exportExpensesToCSV(filePath);
+        }
+    }
+
+
+
+
+
+
+
+
+
+    private static void loadExpensesFromCSV(String filePath) {
+        // Clear existing expenses before loading new ones
+        expenseList.clear();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                // Assuming the CSV format is: Amount, Category, Date, Description
+                String[] fields = line.split(",");
+                if (fields.length == 4) {
+                    try {
+                        double amount = Double.parseDouble(fields[0].trim());
+                        String category = fields[1].trim();
+                        LocalDate date = LocalDate.parse(fields[2].trim()); // Assuming the date is in the format YYYY-MM-DD
+                        String description = fields[3].trim();
+
+                        // Create and add the Expense object
+                        Expense expense = new Expense(amount, category, date, description);
+                        expenseList.add(expense);
+                    } catch (Exception ex) {
+                        System.out.println("Error parsing line: " + line);
+                    }
+                }
+            }
+
+            // Update the UI with the loaded data
+            updateExpenseTable();
+            updateRemainingBudgetLabel();
+            JOptionPane.showMessageDialog(null, "Expenses loaded from CSV.");
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error reading the CSV file: " + e.getMessage());
+        }
+    }
+
+    private static void loadCSV() {
+        // Open file chooser to select CSV file
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Select CSV File");
+
+        int result = fileChooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            String filePath = fileChooser.getSelectedFile().getAbsolutePath();
+            loadExpensesFromCSV(filePath);
+        }
+    }
+
+
+
+
+
+
+
+
 
     // Expense class to represent individual expense items
     static class Expense {
