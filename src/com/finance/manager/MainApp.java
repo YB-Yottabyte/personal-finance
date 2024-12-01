@@ -1,3 +1,5 @@
+// Code for the graphical user interface (GUI) version for my application
+
 package com.finance.manager;
 
 import javax.swing.*;
@@ -8,6 +10,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+
+
 
 public class MainApp {
 
@@ -17,7 +26,8 @@ public class MainApp {
     private static JTable expenseTable;
     private static DefaultTableModel tableModel;
     private static JTextField budgetField;
-    private static JLabel remainingBudgetLabel;  // Declare the label to show remaining budget
+    private static JLabel remainingBudgetLabel;
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(MainApp::createUI);
@@ -27,6 +37,9 @@ public class MainApp {
     private static void createUI() {
         // Create the main window
         JFrame frame = new JFrame("Personal Finance Manager");
+        JButton loadCSVButton = new JButton("Load Expenses from CSV");
+        JButton exportCSVButton = new JButton("Export Expenses to CSV");
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 400);
         frame.setLayout(new BorderLayout());
@@ -52,6 +65,12 @@ public class MainApp {
         buttonPanel.add(viewBudgetButton);
         buttonPanel.add(clearExpensesButton);
         buttonPanel.add(setBudgetButton);
+        buttonPanel.add(loadCSVButton);
+        buttonPanel.add(exportCSVButton);
+
+
+// Action listener for the "Load CSV" button
+
 
         frame.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -66,6 +85,28 @@ public class MainApp {
         viewBudgetButton.addActionListener(e -> viewBudgetStatus());
         clearExpensesButton.addActionListener(e -> clearExpenses());
         setBudgetButton.addActionListener(e -> setBudget());
+        loadCSVButton.addActionListener(e -> loadCSV());
+        exportCSVButton.addActionListener(e -> exportCSV());
+
+        frame.addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                // Prompt the user to export expenses before closing the application
+                int confirmation = JOptionPane.showConfirmDialog(frame,
+                        "Do you want to export your expenses before closing?",
+                        "Export Expenses",
+                        JOptionPane.YES_NO_OPTION);
+
+                if (confirmation == JOptionPane.YES_OPTION) {
+                    exportCSV();
+                }
+
+                // Close the application
+                System.exit(0);
+            }
+        });
+
+
+
 
 
 
@@ -75,19 +116,28 @@ public class MainApp {
 
     // Method to add an expense
     private static void addExpense() {
+
+
         // Create a dialog to input the expense details
         JTextField amountField = new JTextField(10);
         JTextField categoryField = new JTextField(10);
         JTextField descriptionField = new JTextField(10);
 
+        // Add industry selection
+        String[] industries = {"Retail", "Technology", "Healthcare", "Manufacturing", "Services"};
+        JComboBox<String> industryComboBox = new JComboBox<>(industries);
+
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(4, 2));
+        panel.setLayout(new GridLayout(5, 2));
         panel.add(new JLabel("Amount:"));
         panel.add(amountField);
         panel.add(new JLabel("Category:"));
         panel.add(categoryField);
+        panel.add(new JLabel("Industry:"));
+        panel.add(industryComboBox);  // Add industry dropdown
         panel.add(new JLabel("Description:"));
         panel.add(descriptionField);
+
 
         // Date picker (JSpinner)
         JPanel datePanel = new JPanel();
@@ -134,7 +184,7 @@ public class MainApp {
         for (Expense expense : expenseList) {
             // Add rows to the table
             tableModel.addRow(new Object[]{
-                    "$" + String.format("%.2f", expense.getAmount()),  // Add dollar sign to amount
+                    "$" + String.format("%.2f", expense.getAmount()),
                     expense.getCategory(),
                     expense.getDate(),
                     expense.getDescription()
@@ -204,7 +254,7 @@ public class MainApp {
     private static void updateRemainingBudgetLabel() {
         double totalSpent = getTotalSpent();
         double remainingBudget = budget - totalSpent;
-        remainingBudgetLabel.setText("Remaining Budget: $" + String.format("%.2f", remainingBudget));  // Update label with formatted amount
+        remainingBudgetLabel.setText("Remaining Budget: $" + String.format("%.2f", remainingBudget));
     }
 
     // Method to clear all expenses
@@ -217,6 +267,95 @@ public class MainApp {
             JOptionPane.showMessageDialog(null, "All expenses have been cleared.");
         }
     }
+
+    private static void exportExpensesToCSV(String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            // Write header row
+            writer.write("Amount,Category,Date,Description\n");
+
+            // Write each expense as a new line in CSV format
+            for (Expense expense : expenseList) {
+                writer.write(String.format("%.2f,%s,%s,%s\n",
+                        expense.getAmount(),
+                        expense.getCategory(),
+                        expense.getDate(),
+                        expense.getDescription()));
+            }
+
+            JOptionPane.showMessageDialog(null, "Expenses exported successfully!");
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error exporting the CSV file: " + e.getMessage());
+        }
+    }
+
+    private static void exportCSV() {
+        // Open file chooser to select save location for CSV file
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save Expenses to CSV");
+        fileChooser.setSelectedFile(new java.io.File("expenses.csv")); // Default filename
+
+        int result = fileChooser.showSaveDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            String filePath = fileChooser.getSelectedFile().getAbsolutePath();
+
+            // Check if the file has a .csv extension, if not, append it
+            if (!filePath.endsWith(".csv")) {
+                filePath += ".csv";
+            }
+
+            // Export the expenses to the selected CSV file
+            exportExpensesToCSV(filePath);
+        }
+    }
+
+
+
+    private static void loadExpensesFromCSV(String filePath) {
+        // Clear existing expenses before loading new ones
+        expenseList.clear();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                // Assuming the CSV format is: Amount, Category, Date, Description
+                String[] fields = line.split(",");
+                if (fields.length == 4) {
+                    try {
+                        double amount = Double.parseDouble(fields[0].trim());
+                        String category = fields[1].trim();
+                        LocalDate date = LocalDate.parse(fields[2].trim()); // Assuming the date is in the format YYYY-MM-DD
+                        String description = fields[3].trim();
+
+                        // Create and add the Expense object
+                        Expense expense = new Expense(amount, category, date, description);
+                        expenseList.add(expense);
+                    } catch (Exception ex) {
+                        System.out.println("Error parsing line: " + line);
+                    }
+                }
+            }
+
+            // Update the UI with the loaded data
+            updateExpenseTable();
+            updateRemainingBudgetLabel();
+            JOptionPane.showMessageDialog(null, "Expenses loaded from CSV.");
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error reading the CSV file: " + e.getMessage());
+        }
+    }
+
+    private static void loadCSV() {
+        // Open file chooser to select CSV file
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Select CSV File");
+
+        int result = fileChooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            String filePath = fileChooser.getSelectedFile().getAbsolutePath();
+            loadExpensesFromCSV(filePath);
+        }
+    }
+
 
     // Expense class to represent individual expense items
     static class Expense {
