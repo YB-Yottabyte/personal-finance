@@ -109,7 +109,7 @@ public class MainApp {
         panel.add(new JLabel("Category:"));
         panel.add(categoryField);
         panel.add(new JLabel("Industry:"));
-        panel.add(industryComboBox);  // Add industry dropdown
+        panel.add(industryComboBox);  
         panel.add(new JLabel("Description:"));
         panel.add(descriptionField);
 
@@ -135,13 +135,13 @@ public class MainApp {
 
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 String dateString = sdf.format(selectedDate);
-                LocalDate localDate = LocalDate.parse(dateString);  // Convert to LocalDate
+                LocalDate localDate = LocalDate.parse(dateString);  
 
                 com.finance.manager.Expense expense = new com.finance.manager.Expense(amount, category, localDate, description);
                 expenseTrackerService.addExpense(expense);
                 JOptionPane.showMessageDialog(null, "Expense added!");
                 updateExpenseTable();
-                updateRemainingBudgetLabel();  // Update the remaining budget after adding an expense
+                updateRemainingBudgetLabel();  
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(null, "Invalid input. Please try again.");
             }
@@ -265,7 +265,7 @@ public class MainApp {
                     try {
                         double amount = Double.parseDouble(fields[0].trim());
                         String category = fields[1].trim();
-                        LocalDate date = LocalDate.parse(fields[2].trim()); // Assuming the date is in the format YYYY-MM-DD
+                        LocalDate date = LocalDate.parse(fields[2].trim()); 
                         String description = fields[3].trim();
 
                         com.finance.manager.Expense expense = new com.finance.manager.Expense(amount, category, date, description);
