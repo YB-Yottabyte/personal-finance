@@ -239,7 +239,7 @@ public class MainApp {
     private  void exportCSV() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Save Expenses to CSV");
-        fileChooser.setSelectedFile(new java.io.File("expenses.csv")); // Default filename
+        fileChooser.setSelectedFile(new java.io.File("expenses.csv")); 
 
         int result = fileChooser.showSaveDialog(null);
         if (result == JFileChooser.APPROVE_OPTION) {
