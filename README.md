@@ -30,7 +30,7 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 **Contact**
 
-**GitHub:** YB-Yottabyte
+**GitHub:** https://github.com/YB-Yottabyte
 
-**LinkedIn:** Sai Rithwik Kukunuri
+**LinkedIn:** https://www.linkedin.com/in/sai-rithwik-kukunuri-b5084527b/
 
