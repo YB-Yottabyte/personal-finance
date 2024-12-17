@@ -1,6 +1,6 @@
-**Personal Finance Manager Application**
+# Personal Finance Manager Application
 
-**Overview**
+### Overview
 
 The Personal Finance Manager Application is a desktop-based Java application designed to help users manage their personal finances. It features tools for tracking daily expenses, setting budgets, and exporting/importing financial data in CSV format. With a simple and user-friendly interface, this application empowers users to take control of their finances with ease.
 
@@ -14,7 +14,7 @@ Build the project to resolve dependencies.
 
 Run the MainApp class to start the application.
 
-**Usage**
+### Usage
 
 **Adding Expenses:** Enter details and click "Add Expense."
 
@@ -24,11 +24,11 @@ Run the MainApp class to start the application.
 
 **Importing Data:** Click "Load" to import expenses from a CSV file.
 
-**License**
+### License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
 
-**Contact**
+### Contact
 
 **GitHub:** https://github.com/YB-Yottabyte
 
