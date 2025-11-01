@@ -5,4 +5,4 @@ This project was developed as part of **CSE 205 (Object-Oriented Programming and
 It showcases strong object-oriented design, UI development using **Java Swing**, and local file handling via **CSV I/O**.
 
 📘 **Detailed Report:**  
-[View Full Project Documentation (PDF)](https://github.com/YB-Yottabyte/personal-finance/blob/main/Report)
+[View Full Project Documentation (PDF)](https://github.com/YB-Yottabyte/personal-finance/blob/main/Report.pdf)
