@@ -1,6 +1,4 @@
-# 💰 Personal Finance Manager
-
-## 🧾 Overview
+# Personal Finance Manager
 **Personal Finance Manager** is a desktop-based Java application that helps users efficiently track expenses, manage budgets, and analyze financial data — all while keeping their information private and stored locally.
 
 This project was developed as part of **CSE 205 (Object-Oriented Programming and Data Structures)** at **Arizona State University**.  
