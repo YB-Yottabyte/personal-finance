@@ -1,0 +1,26 @@
+# Maven build output
+target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Runtime data files (user-specific, should not be committed)
+expenses.csv
+budget.properties
+
+# Compiled class files
+*.class
