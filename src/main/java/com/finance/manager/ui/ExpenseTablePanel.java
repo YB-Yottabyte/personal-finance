@@ -1,7 +1,7 @@
 package com.finance.manager.ui;
 
 import com.finance.manager.Expense;
-import com.finance.manager.ExpenseTrackerService;
+import com.finance.manager.service.ExpenseService;
 import com.finance.manager.analytics.SpendingAnomaly;
 
 import javax.swing.*;
@@ -27,8 +27,8 @@ public class ExpenseTablePanel extends JPanel {
             "Entertainment", "Shopping", "Technology", "Other"
     };
 
-    private final ExpenseTrackerService service;
-    private final Runnable onDataChanged; // callback to refresh other panels
+    private final ExpenseService service;
+    private final Runnable       onDataChanged;
 
     private final DefaultTableModel tableModel = new DefaultTableModel(COLUMNS, 0) {
         @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -38,16 +38,15 @@ public class ExpenseTablePanel extends JPanel {
     private final TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModel);
     private final JTextField searchField = new JTextField(20);
 
-    // Anomaly tracking — row indices of flagged expenses
     private Set<Integer> anomalyRows = Set.of();
 
-    public ExpenseTablePanel(ExpenseTrackerService service, Runnable onDataChanged) {
-        this.service = service;
+    public ExpenseTablePanel(ExpenseService service, Runnable onDataChanged) {
+        this.service       = service;
         this.onDataChanged = onDataChanged;
         setLayout(new BorderLayout(6, 6));
         setBorder(new EmptyBorder(8, 10, 8, 10));
 
-        // ---- Search bar (top) -----------------------------------------------
+        // Search bar
         JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         topBar.add(new JLabel("Search:"));
         topBar.add(searchField);
@@ -57,20 +56,18 @@ public class ExpenseTablePanel extends JPanel {
         topBar.add(clearSearch);
         add(topBar, BorderLayout.NORTH);
 
-        // ---- Table ----------------------------------------------------------
+        // Table
         table.setRowSorter(sorter);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setRowHeight(24);
         table.getTableHeader().setReorderingAllowed(false);
-
-        // Column widths
         table.getColumnModel().getColumn(0).setPreferredWidth(90);
         table.getColumnModel().getColumn(1).setPreferredWidth(110);
         table.getColumnModel().getColumn(2).setPreferredWidth(100);
         table.getColumnModel().getColumn(3).setPreferredWidth(300);
 
-        // Color-coded rows: zebra stripes + anomaly highlight
+        // Zebra stripes + anomaly highlight
         table.setDefaultRenderer(String.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(
@@ -79,7 +76,7 @@ public class ExpenseTablePanel extends JPanel {
                 if (!selected) {
                     int modelRow = table.convertRowIndexToModel(row);
                     if (anomalyRows.contains(modelRow)) {
-                        c.setBackground(new Color(255, 220, 220)); // red tint for anomaly
+                        c.setBackground(new Color(255, 220, 220));
                     } else if (row % 2 == 0) {
                         c.setBackground(UIManager.getColor("Table.background"));
                     } else {
@@ -92,7 +89,7 @@ public class ExpenseTablePanel extends JPanel {
             }
         });
 
-        // Live search filter
+        // Live search
         searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             public void insertUpdate(javax.swing.event.DocumentEvent e)  { applyFilter(); }
             public void removeUpdate(javax.swing.event.DocumentEvent e)  { applyFilter(); }
@@ -101,17 +98,14 @@ public class ExpenseTablePanel extends JPanel {
 
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // ---- Action buttons (bottom) ----------------------------------------
+        // Buttons
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 4));
         JButton addBtn    = new JButton("Add Expense");
         JButton clearBtn  = new JButton("Clear All");
         JButton loadBtn   = new JButton("Load CSV");
         JButton exportBtn = new JButton("Export CSV");
-
-        buttons.add(addBtn);
-        buttons.add(clearBtn);
-        buttons.add(loadBtn);
-        buttons.add(exportBtn);
+        buttons.add(addBtn); buttons.add(clearBtn);
+        buttons.add(loadBtn); buttons.add(exportBtn);
         add(buttons, BorderLayout.SOUTH);
 
         addBtn.addActionListener(e -> showAddExpenseDialog());
@@ -120,12 +114,9 @@ public class ExpenseTablePanel extends JPanel {
         exportBtn.addActionListener(e -> exportCSV());
     }
 
-    // -------------------------------------------------------------------------
-    // Public refresh
-    // -------------------------------------------------------------------------
+    // ---- Refresh ------------------------------------------------------------
 
     public void refresh(List<Expense> expenses) {
-        // Recompute anomaly row indices
         SpendingAnomaly detector = new SpendingAnomaly();
         Set<Expense> flagged = detector.detectAnomalies(expenses).stream()
                 .map(SpendingAnomaly.AnomalyResult::expense)
@@ -147,23 +138,20 @@ public class ExpenseTablePanel extends JPanel {
         applyFilter();
     }
 
-    // -------------------------------------------------------------------------
-    // Actions
-    // -------------------------------------------------------------------------
+    // ---- Actions ------------------------------------------------------------
 
     private void showAddExpenseDialog() {
-        JTextField amountField = new JTextField(10);
-        JTextField descField   = new JTextField(20);
+        JTextField amountField    = new JTextField(10);
+        JTextField descField      = new JTextField(20);
         JComboBox<String> catCombo = new JComboBox<>(CATEGORIES);
-
         SpinnerDateModel dateModel = new SpinnerDateModel();
-        JSpinner dateSpinner = new JSpinner(dateModel);
+        JSpinner dateSpinner      = new JSpinner(dateModel);
         dateSpinner.setEditor(new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd"));
 
         JPanel panel = new JPanel(new GridLayout(4, 2, 6, 6));
         panel.add(new JLabel("Amount ($):")); panel.add(amountField);
-        panel.add(new JLabel("Category:")); panel.add(catCombo);
-        panel.add(new JLabel("Date:")); panel.add(dateSpinner);
+        panel.add(new JLabel("Category:"));  panel.add(catCombo);
+        panel.add(new JLabel("Date:"));      panel.add(dateSpinner);
         panel.add(new JLabel("Description:")); panel.add(descField);
 
         int opt = JOptionPane.showConfirmDialog(this, panel,
@@ -173,13 +161,9 @@ public class ExpenseTablePanel extends JPanel {
         try {
             double amount = Double.parseDouble(amountField.getText().trim());
             if (amount < 0) { showWarning("Amount cannot be negative."); return; }
-
-            String category = (String) catCombo.getSelectedItem();
-            String desc = descField.getText().trim();
             String dateStr = new SimpleDateFormat("yyyy-MM-dd").format((Date) dateSpinner.getValue());
-            LocalDate date = LocalDate.parse(dateStr);
-
-            service.addExpense(new Expense(amount, category, date, desc));
+            service.addExpense(new Expense(amount, (String) catCombo.getSelectedItem(),
+                    LocalDate.parse(dateStr), descField.getText().trim()));
             onDataChanged.run();
         } catch (NumberFormatException ex) {
             showWarning("Please enter a valid number for the amount.");
@@ -191,7 +175,7 @@ public class ExpenseTablePanel extends JPanel {
                 "Clear all expenses? This cannot be undone.",
                 "Confirm Clear", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (choice == JOptionPane.YES_OPTION) {
-            service.clearExpenses();
+            service.clearAll();
             onDataChanged.run();
         }
     }
@@ -201,7 +185,7 @@ public class ExpenseTablePanel extends JPanel {
         fc.setDialogTitle("Load Expenses from CSV");
         if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
         try {
-            service.loadExpensesFromCSV(fc.getSelectedFile().getAbsolutePath());
+            service.importFromCSV(fc.getSelectedFile().getAbsolutePath());
             onDataChanged.run();
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(this, "Load failed: " + ex.getMessage(),
@@ -217,7 +201,7 @@ public class ExpenseTablePanel extends JPanel {
         String path = fc.getSelectedFile().getAbsolutePath();
         if (!path.endsWith(".csv")) path += ".csv";
         try {
-            service.exportExpensesToCSV(path, service.getExpenses());
+            service.exportToCSV(path);
             JOptionPane.showMessageDialog(this, "Exported to:\n" + path);
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(this, "Export failed: " + ex.getMessage(),

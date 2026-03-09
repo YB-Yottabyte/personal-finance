@@ -1,5 +1,6 @@
 package com.finance.manager;
 
+import org.springframework.stereotype.Component;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
  * Handles CSV import and export. Stateless — does not reference ExpenseHandler
  * directly, so it is independently testable.
  */
+@Component
 public class CSVHandler {
 
     public void exportExpensesToCSV(String filePath, List<Expense> expenseList) {
